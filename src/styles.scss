@@ -1,0 +1,20 @@
+@charset "utf-8";
+
+// Import a Google Font
+@import url('https://fonts.googleapis.com/css?family=Inconsolata:400,700');
+
+// Set your brand colors
+
+// Update Bulma's global variables
+$family-sans-serif: 'Inconsolata', monospace;
+$text: #fff;
+// $grey-dark: $brown;
+// $grey-light: $beige-light;
+// $primary: $purple;
+// $link: $pink;
+// $widescreen-enabled: false;
+// $fullhd-enabled: false;
+
+$body-background-color: #222;
+
+@import '../node_modules/bulma/bulma.sass';
