@@ -183,7 +183,7 @@ export default {
     for (var ii = 0; ii < 50; ++ii) {
       // Setup a random rectangle
       setRectangle(
-        gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300))
+        gl, randomInt(gl.canvas.width), randomInt(gl.canvas.height), randomInt(gl.canvas.width), randomInt(gl.canvas.height))
 
       // Set a random color.
       gl.uniform4f(colourLocation, Math.random(), Math.random(), Math.random(), 1)
