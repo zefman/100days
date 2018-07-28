@@ -69,6 +69,33 @@ function resize (canvas) {
   }
 }
 
+// Returns a random integer from 0 to range - 1.
+function randomInt (range) {
+  return Math.floor(Math.random() * range)
+}
+
+// Fills the buffer with the values that define a rectangle.
+
+function setRectangle (gl, x, y, width, height) {
+  var x1 = x
+  var x2 = x + width
+  var y1 = y
+  var y2 = y + height
+
+  // NOTE: gl.bufferData(gl.ARRAY_BUFFER, ...) will affect
+  // whatever buffer is bound to the `ARRAY_BUFFER` bind point
+  // but so far we only have one buffer. If we had more than one
+  // buffer we'd want to bind that buffer to `ARRAY_BUFFER` first.
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    x1, y1,
+    x2, y1,
+    x1, y2,
+    x1, y2,
+    x2, y1,
+    x2, y2]), gl.STATIC_DRAW)
+}
+
 export default {
   components: {
     DayWrapper
@@ -88,6 +115,8 @@ export default {
 
     // Find attribute location of our program
     const positionAttributeLocation = gl.getAttribLocation(program, 'a_position')
+    const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution')
+    const colourLocation = gl.getUniformLocation(program, 'u_color')
 
     // Attributes get their data from buffers so we need to create a buffer
     const positionBuffer = gl.createBuffer()
@@ -98,9 +127,12 @@ export default {
     // Now we can put data in that buffer by referencing it through the bind point
     // three 2d points
     const positions = [
-      0, 0,
-      0, 0.5,
-      0.7, 0
+      10, 20,
+      80, 20,
+      10, 30,
+      10, 30,
+      80, 20,
+      80, 30
     ]
     // gl.STATIC_DRAW tells WebGL we are not likely to change this data much.
     // Float32Array as needs to be strongly typed
@@ -137,14 +169,32 @@ export default {
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program)
 
+    // Pass in the canvas resolution so we can convert from
+    // pixels to clipspace in the shader
+    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height)
+
+    // Set a random color.
+    gl.uniform4f(colourLocation, Math.random(), Math.random(), Math.random(), 1)
+
     // Bind the attribute/buffer set we want.
     gl.bindVertexArray(vao)
 
-    // execute our GLSL program.
-    const primitiveType = gl.TRIANGLES
-    // const offset = 0;
-    const count = 3
-    gl.drawArrays(primitiveType, offset, count)
+    // draw 50 random rectangles in random colors
+    for (var ii = 0; ii < 50; ++ii) {
+      // Setup a random rectangle
+      setRectangle(
+        gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300))
+
+      // Set a random color.
+      gl.uniform4f(colourLocation, Math.random(), Math.random(), Math.random(), 1)
+
+      // Draw the rectangle.
+      // execute our GLSL program.
+      const primitiveType = gl.TRIANGLES
+      const offset = 0
+      const count = 6
+      gl.drawArrays(primitiveType, offset, count)
+    }
   }
 }
 </script>

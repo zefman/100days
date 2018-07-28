@@ -32,6 +32,8 @@ export default {
 <style lang="scss">
 .day {
     padding-top: 40px;
+    margin-left: 32px;
+    margin-right: 32px;
 }
 
 .markdown {
