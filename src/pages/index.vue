@@ -5,7 +5,7 @@
         <div class="column">
           <h1 class="about__title is-size-2 has-text-weight-bold">About</h1>
           <p class="is-size-4">
-            I am trying to finally learn WebGL after half heartedly trying many a time. I'll be useing the <a href="http://www.100daysofcode.com/" target="_blank">#100DaysOfCode</a>
+            I am attempting to finally learn WebGL after half heartedly trying many a time. I'll be useing the <a href="http://www.100daysofcode.com/" target="_blank">#100DaysOfCode</a>
             project as way to finally help me crack WebGL. This site will serve as an archive of my learnings and experirments
             along the way.
           </p>
@@ -23,13 +23,8 @@
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
 export default {
   name: 'home',
-  components: {
-    HelloWorld
-  },
   mounted () {
     console.log(this.$router.options.routes)
   },

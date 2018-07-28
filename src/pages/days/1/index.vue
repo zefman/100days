@@ -1,0 +1,157 @@
+<template>
+  <day-wrapper :dayNum="1" title="Hello world">
+    <template slot="description">
+Day 1! How exciting before decidiing to start this joruney, I have found what look like a number of really great resources to help me learn WebGL. Initially I am going to follow these tutorials and post them here. Once I have built up a good baseunderstanding I'll break away and try some of my own experiments.
+
+* [https://webgl2fundamentals.org/](https://webgl2fundamentals.org/)
+* [http://learnwebgl.brown37.net/](http://learnwebgl.brown37.net/)
+* [http://vis.academy/#/](http://vis.academy/#/)
+
+### Learnings
+
+WebGL programs are allways supplied as a pair of functions, a *Vertex shader* and a *Fragment shader*
+
+* *Vertex shaders* compute positions. WebGL then uses these positions to rasterize differnet objects on the canvas. When rasterizing these positions, it calls upon its little friend the fragment shader.
+* *Fragment shaders* computed the colour of the positions provided by the fragement shader.
+    </template>
+
+    <canvas ref="canvas" slot="experiment"></canvas>
+  </day-wrapper>
+</template>
+
+<script>
+import DayWrapper from '@/components/DayWrapper.vue'
+import fragmentShaderSource from './fragmentShader.glsl'
+import vertexShaderSource from './vertexShader.glsl'
+
+let canvas
+let gl
+let vertexShader
+let fragmentShader
+
+function createShader (gl, type, source) {
+  var shader = gl.createShader(type)
+  gl.shaderSource(shader, source)
+  gl.compileShader(shader)
+  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
+  if (success) {
+    return shader
+  }
+  console.log(gl.getShaderInfoLog(shader))
+  gl.deleteShader(shader)
+}
+
+function createProgram (gl, vertexShader, fragmentShader) {
+  var program = gl.createProgram()
+  gl.attachShader(program, vertexShader)
+  gl.attachShader(program, fragmentShader)
+  gl.linkProgram(program)
+  var success = gl.getProgramParameter(program, gl.LINK_STATUS)
+  if (success) {
+    return program
+  }
+
+  console.log(gl.getProgramInfoLog(program))
+  gl.deleteProgram(program)
+}
+
+function resize (canvas) {
+  // Lookup the size the browser is displaying the canvas.
+  var displayWidth = canvas.clientWidth
+  var displayHeight = canvas.clientHeight
+
+  // Check if the canvas is not the same size.
+  if (canvas.width !== displayWidth ||
+      canvas.height !== displayHeight) {
+    // Make the canvas the same size
+    canvas.width = displayWidth
+    canvas.height = displayHeight
+  }
+}
+
+export default {
+  components: {
+    DayWrapper
+  },
+  mounted () {
+    // Code from https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
+
+    canvas = this.$refs['canvas']
+    gl = canvas.getContext('webgl2')
+
+    // Create both shaders
+    vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource)
+    fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
+
+    // Create the program by adding in the pair of shaders
+    const program = createProgram(gl, vertexShader, fragmentShader)
+
+    // Find attribute location of our program
+    const positionAttributeLocation = gl.getAttribLocation(program, 'a_position')
+
+    // Attributes get their data from buffers so we need to create a buffer
+    const positionBuffer = gl.createBuffer()
+
+    // WebGL lets us manipulate many WebGL resources on global bind points. You can think of bind points as internal global variables inside WebGL. First you bind a resource to a bind point. Then, all other functions refer to the resource through the bind point. So, let's bind the position buffer.
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+
+    // Now we can put data in that buffer by referencing it through the bind point
+    // three 2d points
+    const positions = [
+      0, 0,
+      0, 0.5,
+      0.7, 0
+    ]
+    // gl.STATIC_DRAW tells WebGL we are not likely to change this data much.
+    // Float32Array as needs to be strongly typed
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
+
+    // Now that we've put data in a buffer we need to tell the attribute ('a_position') how to get data out of it. First we need to create a collection of attribute state called a Vertex Array Object.
+    const vao = gl.createVertexArray()
+
+    // And we need to make that the current vertex array so that all of our attribute settings will apply to that set of attribute state
+    gl.bindVertexArray(vao)
+
+    // Now we finally setup the attributes in the vertex array. First off we need to turn the attribute on. This tells WebGL we want to get data out of a buffer. If we don't turn on the attribute then the attribute will have a constant value.
+    gl.enableVertexAttribArray(positionAttributeLocation)
+
+    // Then we need to specify how to pull the data out
+    const size = 2 // 2 components per iteration
+    const type = gl.FLOAT // the data is 32bit floats
+    const normalize = false // don't normalize the data
+    const stride = 0 // 0 = move forward size * sizeof(type) each iteration to get the next position
+    const offset = 0 // start at the beginning of the buffer
+    gl.vertexAttribPointer(
+      positionAttributeLocation, size, type, normalize, stride, offset)
+
+    // Resize canvas
+    resize(gl.canvas)
+
+    // We need to tell WebGL how to convert from the clip space values we'll be setting gl_Position to back into pixels, often called screen space. To do this we call gl.viewport and pass it the current size of the canvas.
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+
+    // Clear the canvas
+    gl.clearColor(0, 0, 0, 0)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+
+    // Tell it to use our program (pair of shaders)
+    gl.useProgram(program)
+
+    // Bind the attribute/buffer set we want.
+    gl.bindVertexArray(vao)
+
+    // execute our GLSL program.
+    const primitiveType = gl.TRIANGLES
+    // const offset = 0;
+    const count = 3
+    gl.drawArrays(primitiveType, offset, count)
+  }
+}
+</script>
+
+<style>
+canvas {
+  width: 100%;
+  height: 80vh;
+}
+</style>
