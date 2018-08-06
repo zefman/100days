@@ -1,21 +1,25 @@
 <template>
-  <day-wrapper :dayNum="1" title="Hello world">
+  <day-wrapper :dayNum="3" title="Translation">
     <template slot="description">
-Day 1! How exciting before decidiing to start this joruney, I have found what look like a number of really great resources to help me learn WebGL. Initially I am going to follow these tutorials and post them here. Once I have built up a good baseunderstanding I'll break away and try some of my own experiments.
+### Day 3! Translation
 
-* [https://webgl2fundamentals.org/](https://webgl2fundamentals.org/)
-* [http://learnwebgl.brown37.net/](http://learnwebgl.brown37.net/)
-* [http://vis.academy/#/](http://vis.academy/#/)
+This time I have made the rectangles smaller, and you can regenate them randomly by clicking the canvas.
 
-### Learnings
-
-WebGL programs are allways supplied as a pair of functions, a *Vertex shader* and a *Fragment shader*
-
-* *Vertex shaders* compute positions. WebGL then uses these positions to rasterize differnet objects on the canvas. When rasterizing these positions, it calls upon its little friend the fragment shader.
-* *Fragment shaders* computed the colour of the positions provided by the fragement shader.
+There are a lot more rectangles too!
     </template>
 
-    <canvas ref="canvas" slot="experiment" @click="generate"></canvas>
+    <div slot="experiment" class="experiment">
+      <div class="x-slider">
+        <label for="x">X Translation:</label>
+        <input type="range" name="x" min="0" :max="width" v-model="translation[0]" />
+      </div>
+
+      <div class="y-slider">
+        <label for="y">Y Translation:</label>
+        <input type="range" name="y" min="0" :max="height" v-model="translation[1]"/>
+      </div>
+      <canvas ref="canvas" @click="draw"></canvas>
+    </div>
   </day-wrapper>
 </template>
 
@@ -102,13 +106,32 @@ export default {
   },
   data () {
     return {
-      colourLocation: null
+      colourLocation: null,
+      translationLocation: null,
+      translation: [0, 0],
+      canvas: null
+    }
+  },
+  computed: {
+    width () {
+      if (this.canvas) {
+        return this.canvas.width
+      }
+
+      return 0
+    },
+    height () {
+      if (this.canvas) {
+        return this.canvas.height
+      }
+
+      return 0
     }
   },
   mounted () {
     // Code from https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
-
     canvas = this.$refs['canvas']
+    this.canvas = canvas
     gl = canvas.getContext('webgl2')
 
     // Create both shaders
@@ -123,26 +146,15 @@ export default {
     const resolutionUniformLocation = gl.getUniformLocation(program, 'u_resolution')
     const colourLocation = gl.getUniformLocation(program, 'u_color')
     this.colourLocation = colourLocation
+    const translationLocation = gl.getUniformLocation(program, 'u_translation')
+    this.translationLocation = translationLocation
+    console.log(translationLocation)
 
     // Attributes get their data from buffers so we need to create a buffer
     const positionBuffer = gl.createBuffer()
 
     // WebGL lets us manipulate many WebGL resources on global bind points. You can think of bind points as internal global variables inside WebGL. First you bind a resource to a bind point. Then, all other functions refer to the resource through the bind point. So, let's bind the position buffer.
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-
-    // Now we can put data in that buffer by referencing it through the bind point
-    // three 2d points
-    const positions = [
-      10, 20,
-      80, 20,
-      10, 30,
-      10, 30,
-      80, 20,
-      80, 30
-    ]
-    // gl.STATIC_DRAW tells WebGL we are not likely to change this data much.
-    // Float32Array as needs to be strongly typed
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
 
     // Now that we've put data in a buffer we need to tell the attribute ('a_position') how to get data out of it. First we need to create a collection of attribute state called a Vertex Array Object.
     const vao = gl.createVertexArray()
@@ -181,38 +193,67 @@ export default {
     // Bind the attribute/buffer set we want.
     gl.bindVertexArray(vao)
 
-    this.generate()
+    // Setup a random rectangle
+    setRectangle(
+      gl, randomInt(gl.canvas.width), randomInt(gl.canvas.height), 10, 10)
+
+    setRectangle(
+      gl, 0, 0, 10, 10)
+
+    // Set a random color.
+    gl.uniform4f(this.colourLocation, Math.random(), Math.random(), Math.random(), 1)
+
+    this.draw()
   },
   methods: {
-    generate () {
+    draw () {
       // Clear the canvas
       gl.clearColor(0, 0, 0, 0)
       gl.clear(gl.COLOR_BUFFER_BIT)
 
-      // draw 50 random rectangles in random colors
-      for (var ii = 0; ii < 50; ++ii) {
-        // Setup a random rectangle
-        setRectangle(
-          gl, randomInt(gl.canvas.width), randomInt(gl.canvas.height), randomInt(gl.canvas.width), randomInt(gl.canvas.height))
+      // Set the translation.
+      gl.uniform2fv(this.translationLocation, this.translation.map((num) => parseInt(num, 10)))
 
-        // Set a random color.
-        gl.uniform4f(this.colourLocation, Math.random(), Math.random(), Math.random(), 1)
+      // Draw the rectangle.
+      // execute our GLSL program.
+      const primitiveType = gl.TRIANGLES
+      const offset = 0
+      const count = 6
+      gl.drawArrays(primitiveType, offset, count)
 
-        // Draw the rectangle.
-        // execute our GLSL program.
-        const primitiveType = gl.TRIANGLES
-        const offset = 0
-        const count = 6
-        gl.drawArrays(primitiveType, offset, count)
-      }
+      requestAnimationFrame(this.draw)
     }
   }
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
 canvas {
   width: 100%;
   height: 80vh;
+}
+
+.experiment {
+  position: relative;
+}
+
+.x-slider {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+
+  label {
+    display: block;
+  }
+}
+
+.y-slider {
+  position: absolute;
+  top: 50px;
+  right: 0px;
+
+  label {
+    display: block;
+  }
 }
 </style>

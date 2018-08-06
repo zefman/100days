@@ -1,18 +1,11 @@
 <template>
-  <day-wrapper :dayNum="1" title="Hello world">
+  <day-wrapper :dayNum="2" title="Randomness">
     <template slot="description">
-Day 1! How exciting before decidiing to start this joruney, I have found what look like a number of really great resources to help me learn WebGL. Initially I am going to follow these tutorials and post them here. Once I have built up a good baseunderstanding I'll break away and try some of my own experiments.
+Day 2! Just an extension of what was learnt on day one really.
 
-* [https://webgl2fundamentals.org/](https://webgl2fundamentals.org/)
-* [http://learnwebgl.brown37.net/](http://learnwebgl.brown37.net/)
-* [http://vis.academy/#/](http://vis.academy/#/)
+This time I have made the rectangles smaller, and you can regenate them randomly by clicking the canvas.
 
-### Learnings
-
-WebGL programs are allways supplied as a pair of functions, a *Vertex shader* and a *Fragment shader*
-
-* *Vertex shaders* compute positions. WebGL then uses these positions to rasterize differnet objects on the canvas. When rasterizing these positions, it calls upon its little friend the fragment shader.
-* *Fragment shaders* computed the colour of the positions provided by the fragement shader.
+There are a lot more rectangles too!
     </template>
 
     <canvas ref="canvas" slot="experiment" @click="generate"></canvas>
@@ -190,10 +183,10 @@ export default {
       gl.clear(gl.COLOR_BUFFER_BIT)
 
       // draw 50 random rectangles in random colors
-      for (var ii = 0; ii < 50; ++ii) {
+      for (var ii = 0; ii < 1000; ++ii) {
         // Setup a random rectangle
         setRectangle(
-          gl, randomInt(gl.canvas.width), randomInt(gl.canvas.height), randomInt(gl.canvas.width), randomInt(gl.canvas.height))
+          gl, randomInt(gl.canvas.width), randomInt(gl.canvas.height), 10, 10)
 
         // Set a random color.
         gl.uniform4f(this.colourLocation, Math.random(), Math.random(), Math.random(), 1)
@@ -205,6 +198,7 @@ export default {
         const count = 6
         gl.drawArrays(primitiveType, offset, count)
       }
+      // requestAnimationFrame(this.generate);
     }
   }
 }
